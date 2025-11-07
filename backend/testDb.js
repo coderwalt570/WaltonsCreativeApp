@@ -17,5 +17,7 @@ try {
   await pool.close();
 } catch (err) {
   console.error("❌ Database connection failed:");
-  console.dir(err, { depth: null }); // 🔹 log the full object
+
+// Log everything we can from the error object
+console.error("Error:", JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
 }
