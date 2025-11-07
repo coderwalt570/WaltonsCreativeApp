@@ -1,46 +1,46 @@
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { executeQuery, sql } from "../utils/db.js"; // ✅ make sure sql is imported
 import dotenv from "dotenv";
+import { executeQuery, sql } from "../utils/db.js";
+
 dotenv.config();
 
 export const login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    // Compare password hash in SQL Server instead of bcrypt
-    const query = `
-      SELECT UserID, Username, Role
-      FROM Users
-      WHERE Username = @username
-        AND PasswordHash = HASHBYTES('SHA2_256', @password)
-    `;
+    const users = await executeQuery(
+      "SELECT * FROM Users WHERE Username = @username",
+      [{ name: "username", type: sql.VarChar, value: username }]
+    );
 
-    const result = await executeQuery(query, [
-      { name: "username", type: sql.VarChar, value: username },
-      { name: "password", type: sql.VarChar, value: password }
-    ]);
-
-    if (result.length === 0) {
-      return res.status(401).json({ message: "Invalid username or password" });
+    if (!users[0]) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const user = result[0];
-    
-    // Create token
+    const user = users[0];
+
+    //  compare entered password with PasswordHash column
+    const isMatch = await bcrypt.compare(password, user.PasswordHash);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
+
+    // identifier fields
     const token = jwt.sign(
-      { userId: user.UserID, role: user.Role },
+      { id: user.UserID, role: user.Role },
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );
 
-    return res.json({
+    res.json({
       message: "Login successful",
       token,
       role: user.Role
     });
 
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({ message: "Server error" });
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
