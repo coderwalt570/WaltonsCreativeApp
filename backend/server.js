@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import session from "express-session";
+import path from "path";
 import authRoutes from "./routes/authRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
@@ -12,6 +13,9 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: true }));
+
+// Serve static files from frontend folder
+app.use(express.static(path.resolve('../frontend')));
 
 // Routes
 app.use("/api/auth", authRoutes);
