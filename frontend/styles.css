@@ -1,1 +1,61 @@
+/* General Body */
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f0f7;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
+/* Login Form Container */
+form {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Form Labels and Inputs */
+label {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  color: #4b2b82;
+  font-weight: bold;
+}
+
+input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+/* Button */
+button {
+  margin-top: 20px;
+  padding: 12px;
+  background: #4b2b82; /* Deep Purple */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #6744a3;
+}
+
+/* Title */
+h2 {
+  text-align: center;
+  color: #4b2b82;
+  margin-bottom: 20px;
+}
