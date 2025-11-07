@@ -26,6 +26,13 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid password" });
     }
 
+    req.session.user = {
+      id: user.UserID,
+      role: user.Role
+    };
+
+    return res.json({ success: true, role: user.Role });
+
     // identifier fields
     const token = jwt.sign(
       { id: user.UserID, role: user.Role },
