@@ -7,7 +7,7 @@ const dbConfig = {
   database: process.env.DB_DATABASE,
   driver: process.env.DB_DRIVER,
   options: {
-    trustedConnection: true
+  trustedConnection: true
   }
 };
 
@@ -19,7 +19,10 @@ export const executeQuery = async (query, params = []) => {
     const result = await request.query(query);
     return result.recordset;
   } catch (err) {
-    console.error(err);
+    console.error("Database Error:", err);
     throw err;
   }
 };
+
+// ✅ Export sql so controllers can use sql.VarChar, sql.Int, etc.
+export { sql };
