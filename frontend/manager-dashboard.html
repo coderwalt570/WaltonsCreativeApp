@@ -1,8 +1,27 @@
 <!DOCTYPE html>
-<html>
-<head><title>Manager Dashboard</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manager Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
 <body>
-<h1>Welcome, Operations Manager</h1>
-<p>You can approve invoices and view revenue performance.</p>
+
+<header>Walton's Creative Studio Dashboard</header>
+
+<div class="container">
+  <h1>Welcome, Operations Manager</h1>
+  <p>You can approve invoices and view revenue performance.</p>
+
+  <button class="btn" onclick="logout()">Logout</button>
+</div>
+
+<script>
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = "login.html";
+  }
+</script>
+
 </body>
 </html>
