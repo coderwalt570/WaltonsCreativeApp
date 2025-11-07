@@ -1,8 +1,27 @@
 <!DOCTYPE html>
-<html>
-<head><title>Owner Dashboard</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Owner Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
 <body>
-<h1>Welcome, Business Owner</h1>
-<p>You can manage invoices, users, and reports.</p>
+
+<header>Walton's Creative Studio Dashboard</header>
+
+<div class="container">
+  <h1>Welcome, Business Owner</h1>
+  <p>You can manage invoices, users, and reports.</p>
+
+  <button class="btn" onclick="logout()">Logout</button>
+</div>
+
+<script>
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = "login.html";
+  }
+</script>
+
 </body>
 </html>
