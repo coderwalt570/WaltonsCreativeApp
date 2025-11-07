@@ -1,1 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+</head>
+<body>
+  <h2 id="title">Loading...</h2>
 
+<script>
+async function loadDashboard() {
+  const res = await fetch("/api/dashboard");
+  const data = await res.json();
+
+  if (data.dashboard === "owner") {
+    window.location.href = "owner-dashboard.html";
+  } else if (data.dashboard === "manager") {
+    window.location.href = "manager-dashboard.html";
+  } else if (data.dashboard === "accountant") {
+    window.location.href = "accountant-dashboard.html";
+  } else {
+    document.getElementById("title").innerText = "Access Denied";
+  }
+}
+loadDashboard();
+</script>
+</body>
+</html>
