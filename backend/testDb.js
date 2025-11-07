@@ -6,13 +6,20 @@ const dbConfig = {
   server: process.env.DB_SERVER,
   database: process.env.DB_DATABASE,
   driver: process.env.DB_DRIVER,
-  options: { trustedConnection: true }
+  options: {
+    trustedConnection: true
+  }
 };
+
+console.log("Attempting to connect with config:", dbConfig);
 
 try {
   const pool = await sql.connect(dbConfig);
-  console.log("Database connection successful!");
+  console.log("✅ Database connection successful!");
   await pool.close();
 } catch (err) {
-  console.error("Database connection failed:", err);
+  console.error("❌ Database connection failed:");
+  console.error(err); // full error object
+  console.error("Error code:", err.code);
+  console.error("Error message:", err.message);
 }
