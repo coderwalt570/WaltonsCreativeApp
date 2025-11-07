@@ -7,7 +7,7 @@ const dbConfig = {
   database: process.env.DB_DATABASE,
   driver: process.env.DB_DRIVER,
   options: {
-  trustedConnection: true
+    trustedConnection: true
   }
 };
 
