@@ -1,20 +1,15 @@
-import sql from "mssql/msnodesqlv8.js"; // ✅ note the .js extension
+import sql from "mssql";
 import dotenv from "dotenv";
 dotenv.config();
 
 const dbConfig = {
   server: process.env.DB_SERVER,
   database: process.env.DB_DATABASE,
-  driver: process.env.DB_DRIVER,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   options: {
-    trustServerCertificate: true, // required if using self-signed cert
-  },
-  authentication: {
-    type: 'default',
-    options: {
-      userName: process.env.DB_USER,
-      password: process.env.DB_PASSWORD
-    }
+    encrypt: false,  // local SQL Server does not use encryption
+    trustServerCertificate: true
   }
 };
 
@@ -25,7 +20,8 @@ export async function executeQuery(query, params = []) {
 
     params.forEach(p => request.input(p.name, p.type, p.value));
 
-    return (await request.query(query)).recordset;
+    const result = await request.query(query);
+    return result.recordset;
   } catch (error) {
     console.error("Database Query Error:", error);
     throw error;
