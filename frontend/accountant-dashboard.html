@@ -6,22 +6,42 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header>Accountant Dashboard</header>
+  <div class="container">
+    <h2>Welcome, Accountant</h2>
 
-<header>Walton's Creative Studio Dashboard</header>
+    <section id="invoices">
+      <h3>Invoices</h3>
+      <ul id="invoiceList"></ul>
+    </section>
 
-<div class="container">
-  <h1>Welcome, Accountant</h1>
-  <p>You can apply payments and update financial records.</p>
-
-  <button class="btn" onclick="logout()">Logout</button>
-</div>
+    <section id="payments">
+      <h3>Payments</h3>
+      <ul id="paymentList"></ul>
+    </section>
+  </div>
 
 <script>
-  function logout() {
-    sessionStorage.clear();
-    window.location.href = "login.html";
-  }
-</script>
+async function loadAccountantData() {
+  try {
+    const res = await fetch('/api/data');
+    const { data } = await res.json();
 
+    // Invoices
+    const invoiceList = document.getElementById('invoiceList');
+    invoiceList.innerHTML = data.invoices.map(i => `<li>Invoice #${i.invoiceID} - Amount: $${i.amount} - Status: ${i.paymentStatus}</li>`).join('');
+
+    // Payments
+    const paymentList = document.getElementById('paymentList');
+    paymentList.innerHTML = data.payments.map(p => `<li>Payment #${p.paymentID} - Method: ${p.method} - Amount: $${p.totalAmount} - Date: ${p.transactionDate}</li>`).join('');
+
+  } catch (err) {
+    console.error(err);
+    alert("Error loading dashboard data");
+  }
+}
+
+loadAccountantData();
+</script>
 </body>
 </html>
