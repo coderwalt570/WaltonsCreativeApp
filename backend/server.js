@@ -7,6 +7,7 @@ import { fileURLToPath } from "url"; //
 import authRoutes from "./routes/authRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
+import dataRoutes from "./routes/dataRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -27,6 +28,7 @@ app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUniniti
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/invoices", invoiceRoutes);
+app.use("/api/data", dataRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
