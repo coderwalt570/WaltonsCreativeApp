@@ -1,4 +1,4 @@
-import sql from "mssql/msnodesqlv8.js";
+import sql from "mssql/msnodesqlv8.js"; // ✅ note the .js extension
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -7,8 +7,14 @@ const dbConfig = {
   database: process.env.DB_DATABASE,
   driver: process.env.DB_DRIVER,
   options: {
-    trustedConnection: true,   // 
-    trustServerCertificate: true, // 
+    trustServerCertificate: true, // required if using self-signed cert
+  },
+  authentication: {
+    type: 'default',
+    options: {
+      userName: process.env.DB_USER,
+      password: process.env.DB_PASSWORD
+    }
   }
 };
 
