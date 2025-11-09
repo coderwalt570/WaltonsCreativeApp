@@ -6,42 +6,147 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>Manager Dashboard</header>
-  <div class="container">
-    <h2>Welcome, Manager</h2>
+  <header>
+    <div class="header-left">
+      <h1>Manager Dashboard</h1>
+      <p id="welcome"></p>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </header>
 
-    <section id="projects">
-      <h3>Projects</h3>
-      <ul id="projectList"></ul>
+  <main>
+    <section class="tables">
+      <h2>Projects</h2>
+      <input type="text" id="projectSearch" placeholder="Search Projects..." oninput="filterTable('projectsTable', this.value)">
+      <table id="projectsTable">
+        <thead>
+          <tr>
+            <th>Project ID</th>
+            <th>Client</th>
+            <th>Description</th>
+            <th>Due Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Populated via JS -->
+        </tbody>
+      </table>
+
+      <h2>Expenses</h2>
+      <input type="text" id="expenseSearch" placeholder="Search Expenses..." oninput="filterTable('expensesTable', this.value)">
+      <table id="expensesTable">
+        <thead>
+          <tr>
+            <th>Expense ID</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Populated via JS -->
+        </tbody>
+      </table>
     </section>
 
-    <section id="expenses">
-      <h3>Your Expenses</h3>
-      <ul id="expenseList"></ul>
+    <section class="charts">
+      <h2>Charts</h2>
+      <canvas id="expenseChart" width="400" height="200"></canvas>
     </section>
-  </div>
+  </main>
 
-<script>
-async function loadManagerData() {
-  try {
-    const res = await fetch('/api/data');
-    const { data } = await res.json();
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // ✅ Logout function
+    function logout() {
+      sessionStorage.clear();
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    }
 
-    // Projects
-    const projectList = document.getElementById('projectList');
-    projectList.innerHTML = data.projects.map(p => `<li>${p.description} (Due: ${p.dueDate})</li>`).join('');
+    // ✅ Display welcome message
+    const userRole = sessionStorage.getItem("role") || "Manager";
+    document.getElementById("welcome").innerText = `Welcome, ${userRole}!`;
 
-    // Expenses
-    const expenseList = document.getElementById('expenseList');
-    expenseList.innerHTML = data.expenses.map(e => `<li>${e.category} - $${e.amount} - Date: ${e.date}</li>`).join('');
+    // ✅ Fetch data from backend
+    async function fetchDashboardData() {
+      const token = localStorage.getItem("token");
+      if (!token) return window.location.href = "login.html";
 
-  } catch (err) {
-    console.error(err);
-    alert("Error loading dashboard data");
-  }
-}
+      try {
+        const [projectsRes, expensesRes] = await Promise.all([
+          fetch("/api/projects", { headers: { Authorization: `Bearer ${token}` }}),
+          fetch("/api/expenses", { headers: { Authorization: `Bearer ${token}` }})
+        ]);
 
-loadManagerData();
-</script>
+        const projects = await projectsRes.json();
+        const expenses = await expensesRes.json();
+
+        populateTable("projectsTable", projects);
+        populateTable("expensesTable", expenses);
+
+        drawExpenseChart(expenses);
+
+      } catch (err) {
+        console.error(err);
+        alert("Error fetching dashboard data");
+      }
+    }
+
+    function populateTable(tableId, data) {
+      const tbody = document.getElementById(tableId).querySelector("tbody");
+      tbody.innerHTML = "";
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        Object.values(row).forEach(val => {
+          const td = document.createElement("td");
+          td.innerText = val;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ✅ Filter table function
+    function filterTable(tableId, query) {
+      const rows = document.getElementById(tableId).getElementsByTagName("tr");
+      query = query.toLowerCase();
+      for (let i = 1; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName("td");
+        let match = false;
+        for (let j = 0; j < cells.length; j++) {
+          if (cells[j].innerText.toLowerCase().includes(query)) {
+            match = true;
+            break;
+          }
+        }
+        rows[i].style.display = match ? "" : "none";
+      }
+    }
+
+    // ✅ Draw Expense Chart
+    function drawExpenseChart(expenses) {
+      const ctx = document.getElementById("expenseChart").getContext("2d");
+      const categoryTotals = {};
+      expenses.forEach(e => {
+        categoryTotals[e.Category] = (categoryTotals[e.Category] || 0) + parseFloat(e.Amount);
+      });
+
+      new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels: Object.keys(categoryTotals),
+          datasets: [{
+            label: "Expenses by Category",
+            data: Object.values(categoryTotals),
+            backgroundColor: ["#4b2b82", "#6744a3", "#b22222", "#ffa500"]
+          }]
+        }
+      });
+    }
+
+    fetchDashboardData();
+  </script>
 </body>
 </html>
