@@ -1,5 +1,5 @@
 import { executeQuery } from "../utils/db.js";
-import sql from "mssql/msnodesqlv8.js";
+import sql from "mssql";
 
 // Create Invoice (Owner or Manager)
 export const createInvoice = async (req, res) => {
