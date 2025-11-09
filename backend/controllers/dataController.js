@@ -1,60 +1,44 @@
 import { executeQuery, sql } from "../utils/db.js";
 
-// Returns role-specific dashboard data
+// GET dashboard data based on user role
 export const getDashboardData = async (req, res) => {
   if (!req.session.user) {
-    return res.status(401).json({ success: false, message: "Not logged in" });
+    return res.status(401).json({ message: "Not logged in" });
   }
 
   const role = req.session.user.role;
+  const userId = req.session.user.id;
 
   try {
-    let query = "";
+    let data = {};
 
-    switch (role) {
-      case "Owner":
-        // Example: total invoices per project
-        query = `
-          SELECT p.description AS Label, SUM(i.amount) AS Value
-          FROM Project p
-          JOIN Invoice i ON p.projectID = i.projectID
-          GROUP BY p.description
-        `;
-        break;
-  
-      case "Manager":
-        // Example: total expenses per category
-        query = `
-          SELECT category AS Label, SUM(amount) AS Value
-          FROM Expense
-          WHERE managerID = @managerID
-          GROUP BY category
-        `;
-        break;
-  
-      case "Accountant":
-        // Example: total payments per method
-        query = `
-          SELECT method AS Label, SUM(totalAmount) AS Value
-          FROM Payment
-          GROUP BY method
-        `;
-        break;
-  
-      default:
-        return res.status(403).json({ success: false, message: "Unauthorized role" });
+    if (role === "Owner") {
+      // Example: show all invoices, projects, clients
+      data.invoices = await executeQuery("SELECT * FROM Invoice");
+      data.projects = await executeQuery("SELECT * FROM Project");
+      data.clients = await executeQuery("SELECT * FROM Client");
     }
-  
-    const params = [];
+
     if (role === "Manager") {
-      params.push({ name: "managerID", type: sql.Int, value: req.session.user.id });
+      // Example: show only expenses and projects assigned to manager
+      data.expenses = await executeQuery(
+        "SELECT * FROM Expense WHERE managerID = @userId",
+        [{ name: "userId", type: sql.Int, value: userId }]
+      );
+      data.projects = await executeQuery(
+        "SELECT * FROM Project WHERE ProjectID IN (SELECT ProjectID FROM Invoice)"
+      );
     }
-  
-    const data = await executeQuery(query, params);
-    return res.json({ success: true, data });
-  
-  } catch (err) {
-    console.error("Dashboard Data Error:", err);
-    return res.status(500).json({ success: false, message: "Server error" });
+
+    if (role === "Accountant") {
+      // Example: show all payments and invoices
+      data.payments = await executeQuery("SELECT * FROM Payment");
+      data.invoices = await executeQuery("SELECT * FROM Invoice");
+    }
+
+    res.json({ role, data });
+  } catch (error) {
+    console.error("Dashboard Data Error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
