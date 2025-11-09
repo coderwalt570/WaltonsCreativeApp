@@ -6,22 +6,51 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header>Owner Dashboard</header>
+  <div class="container">
+    <h2>Welcome, Owner</h2>
 
-<header>Walton's Creative Studio Dashboard</header>
+    <section id="clients">
+      <h3>Clients</h3>
+      <ul id="clientList"></ul>
+    </section>
 
-<div class="container">
-  <h1>Welcome, Business Owner</h1>
-  <p>You can manage invoices, users, and reports.</p>
+    <section id="projects">
+      <h3>Projects</h3>
+      <ul id="projectList"></ul>
+    </section>
 
-  <button class="btn" onclick="logout()">Logout</button>
-</div>
+    <section id="invoices">
+      <h3>Invoices</h3>
+      <ul id="invoiceList"></ul>
+    </section>
+  </div>
 
 <script>
-  function logout() {
-    sessionStorage.clear();
-    window.location.href = "login.html";
-  }
-</script>
+async function loadOwnerData() {
+  try {
+    const res = await fetch('/api/data');
+    const { data } = await res.json();
 
+    // Clients
+    const clientList = document.getElementById('clientList');
+    clientList.innerHTML = data.clients.map(c => `<li>${c.name} - ${c.contactInfo}</li>`).join('');
+
+    // Projects
+    const projectList = document.getElementById('projectList');
+    projectList.innerHTML = data.projects.map(p => `<li>${p.description} (Due: ${p.dueDate})</li>`).join('');
+
+    // Invoices
+    const invoiceList = document.getElementById('invoiceList');
+    invoiceList.innerHTML = data.invoices.map(i => `<li>Invoice #${i.invoiceID} - Amount: $${i.amount} - Status: ${i.paymentStatus}</li>`).join('');
+    
+  } catch (err) {
+    console.error(err);
+    alert("Error loading dashboard data");
+  }
+}
+
+loadOwnerData();
+</script>
 </body>
 </html>
