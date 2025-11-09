@@ -6,22 +6,42 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header>Manager Dashboard</header>
+  <div class="container">
+    <h2>Welcome, Manager</h2>
 
-<header>Walton's Creative Studio Dashboard</header>
+    <section id="projects">
+      <h3>Projects</h3>
+      <ul id="projectList"></ul>
+    </section>
 
-<div class="container">
-  <h1>Welcome, Operations Manager</h1>
-  <p>You can approve invoices and view revenue performance.</p>
-
-  <button class="btn" onclick="logout()">Logout</button>
-</div>
+    <section id="expenses">
+      <h3>Your Expenses</h3>
+      <ul id="expenseList"></ul>
+    </section>
+  </div>
 
 <script>
-  function logout() {
-    sessionStorage.clear();
-    window.location.href = "login.html";
-  }
-</script>
+async function loadManagerData() {
+  try {
+    const res = await fetch('/api/data');
+    const { data } = await res.json();
 
+    // Projects
+    const projectList = document.getElementById('projectList');
+    projectList.innerHTML = data.projects.map(p => `<li>${p.description} (Due: ${p.dueDate})</li>`).join('');
+
+    // Expenses
+    const expenseList = document.getElementById('expenseList');
+    expenseList.innerHTML = data.expenses.map(e => `<li>${e.category} - $${e.amount} - Date: ${e.date}</li>`).join('');
+
+  } catch (err) {
+    console.error(err);
+    alert("Error loading dashboard data");
+  }
+}
+
+loadManagerData();
+</script>
 </body>
 </html>
