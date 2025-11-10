@@ -1,64 +1,76 @@
-// ✅ Load dashboard data
-async function loadManagerDashboard() {
-  try {
-    const projectsRes = await fetch("/api/data/projects");
-    const expensesRes = await fetch("/api/data/expenses");
+// ✅ Logout function
+function logout() {
+  sessionStorage.clear();
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+}
 
-    if (!projectsRes.ok || !expensesRes.ok) {
-      throw new Error("Failed to fetch data");
-    }
+// ✅ Display welcome message
+const userRole = sessionStorage.getItem("role") || "Manager";
+document.getElementById("welcome").innerText = `Welcome, ${userRole}!`;
+
+// ✅ Fetch dashboard data
+async function fetchDashboardData() {
+  try {
+    const [projectsRes, expensesRes] = await Promise.all([
+      fetch("/api/data/projects"),
+      fetch("/api/data/expenses")
+    ]);
+
+    if (!projectsRes.ok || !expensesRes.ok) throw new Error("Error loading dashboard data");
 
     const projects = await projectsRes.json();
     const expenses = await expensesRes.json();
 
-    renderTable("projectsTable", projects);
-    renderTable("expensesTable", expenses);
+    populateTable("projectsTable", projects);
+    populateTable("expensesTable", expenses);
     drawExpenseChart(expenses);
 
-  } catch (error) {
-    console.error("Dashboard Load Error:", error);
+  } catch (err) {
+    console.error(err);
     alert("Error loading dashboard data.");
   }
 }
 
-// ✅ Render table data
-function renderTable(tableId, data) {
-  const table = document.getElementById(tableId);
-  table.innerHTML = "";
-
-  if (!data.length) {
-    table.innerHTML = "<tr><td>No data found</td></tr>";
-    return;
-  }
-
-  // Build table headers
-  const headerRow = document.createElement("tr");
-  Object.keys(data[0]).forEach(key => {
-    const th = document.createElement("th");
-    th.innerText = key;
-    headerRow.appendChild(th);
-  });
-  table.appendChild(headerRow);
-
-  // Build table body
-  data.forEach(item => {
-    const row = document.createElement("tr");
-    Object.values(item).forEach(value => {
+// ✅ Populate table dynamically
+function populateTable(tableId, data) {
+  const tbody = document.getElementById(tableId).querySelector("tbody");
+  tbody.innerHTML = "";
+  data.forEach(row => {
+    const tr = document.createElement("tr");
+    Object.values(row).forEach(val => {
       const td = document.createElement("td");
-      td.innerText = value;
-      row.appendChild(td);
+      td.innerText = val;
+      tr.appendChild(td);
     });
-    table.appendChild(row);
+    tbody.appendChild(tr);
   });
 }
 
-// ✅ Draw pie chart for expenses by category
+// ✅ Filter table
+function filterTable(tableId, query) {
+  const rows = document.getElementById(tableId).getElementsByTagName("tr");
+  query = query.toLowerCase();
+  for (let i = 1; i < rows.length; i++) {
+    const cells = rows[i].getElementsByTagName("td");
+    let match = false;
+    for (let j = 0; j < cells.length; j++) {
+      if (cells[j].innerText.toLowerCase().includes(query)) {
+        match = true;
+        break;
+      }
+    }
+    rows[i].style.display = match ? "" : "none";
+  }
+}
+
+// ✅ Draw expense chart
 function drawExpenseChart(expenses) {
   const ctx = document.getElementById("expenseChart").getContext("2d");
-
   const categoryTotals = {};
-  expenses.forEach(exp => {
-    categoryTotals[exp.Category] = (categoryTotals[exp.Category] || 0) + parseFloat(exp.Amount);
+
+  expenses.forEach(e => {
+    categoryTotals[e.category] = (categoryTotals[e.category] || 0) + parseFloat(e.amount);
   });
 
   new Chart(ctx, {
@@ -66,18 +78,15 @@ function drawExpenseChart(expenses) {
     data: {
       labels: Object.keys(categoryTotals),
       datasets: [{
-        data: Object.values(categoryTotals)
+        label: "Expenses by Category",
+        data: Object.values(categoryTotals),
+        backgroundColor: ["#4b2b82", "#6744a3", "#b22222", "#ffa500", "#00aaff"]
       }]
     }
   });
 }
 
-// ✅ Logout function
-function logout() {
-  sessionStorage.clear();
-  window.location.href = "login.html";
-}
-
-loadManagerDashboard();
+// ✅ Initial load
+fetchDashboardData();
 
 
