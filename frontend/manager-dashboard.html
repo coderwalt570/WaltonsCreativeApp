@@ -1,100 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Manager Dashboard</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<script src="js/manager.js"></script>
+
 <body>
   <header>
     <div class="header-left">
       <h1>Manager Dashboard</h1>
       <p id="welcome"></p>
     </div>
-    <button class="logout-btn" onclick="logout()">Logout</button>
-  </header>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</header>
 
-  <main>
-    <section class="tables">
-      <h2>Projects</h2>
-      <input type="text" id="projectSearch" placeholder="Search Projects..." oninput="filterTable('projectsTable', this.value)">
-      <table id="projectsTable">
-        <thead>
-          <tr>
-            <th>Project ID</th>
-            <th>Client</th>
-            <th>Description</th>
-            <th>Due Date</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Populated via JS -->
-        </tbody>
-      </table>
+<main>
+  <section class="tables">
+    <h2>Projects</h2>
+    <input type="text" id="projectSearch" placeholder="Search Projects..." oninput="filterTable('projectsTable', this.value)" />
 
-      <h2>Expenses</h2>
-      <input type="text" id="expenseSearch" placeholder="Search Expenses..." oninput="filterTable('expensesTable', this.value)">
-      <table id="expensesTable">
-        <thead>
-          <tr>
-            <th>Expense ID</th>
-            <th>Category</th>
-            <th>Amount</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Populated via JS -->
-        </tbody>
-      </table>
-    </section>
+    <table id="projectsTable">
+      <thead>
+        <tr>
+          <th>Project ID</th>
+          <th>Client</th>
+          <th>Description</th>
+          <th>Due Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-    <section class="charts">
-      <h2>Charts</h2>
-      <canvas id="expenseChart" width="400" height="200"></canvas>
-    </section>
-  </main>
+    <h2>Expenses</h2>
+    <input type="text" id="expenseSearch" placeholder="Search Expenses..." oninput="filterTable('expensesTable', this.value)" />
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // ✅ Logout function
-    function logout() {
-      sessionStorage.clear();
-      localStorage.removeItem("token");
+    <table id="expensesTable">
+      <thead>
+        <tr>
+          <th>Expense ID</th>
+          <th>Category</th>
+          <th>Amount</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="charts">
+    <h2>Expenses Chart</h2>
+    <canvas id="expenseChart" width="400" height="200"></canvas>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // ✅ Logout user
+  function logout() {
+    fetch("/logout", { method: "POST" })
+      .then(() => (window.location.href = "login.html"));
+  }
+
+  // ✅ Load User Name for Welcome Msg
+  async function loadWelcome() {
+    try {
+      const res = await fetch("/session-user");
+      if (!res.ok) return window.location.href = "login.html";
+      const user = await res.json();
+      document.getElementById("welcome").innerText = `Welcome, ${user.username}!`;
+    } catch {
       window.location.href = "login.html";
     }
+  }
 
-    // ✅ Display welcome message
-    const userRole = sessionStorage.getItem("role") || "Manager";
-    document.getElementById("welcome").innerText = `Welcome, ${userRole}!`;
+  // ✅ Fetch and Display Dashboard Data
+  async function fetchDashboardData() {
+    try {
+      const [projectsRes, expensesRes] = await Promise.all([
+        fetch("/data/projects"),
+        fetch("/data/expenses")
+      ]);
 
-    // ✅ Fetch data from backend
-    async function fetchDashboardData() {
-      const token = localStorage.getItem("token");
-      if (!token) return window.location.href = "login.html";
+      const projects = await projectsRes.json();
+      const expenses = await expensesRes.json();
+      
+      populateTable("projectsTable", projects);
+      populateTable("expensesTable", expenses);
+      drawExpenseChart(expenses);
 
-      try {
-        const [projectsRes, expensesRes] = await Promise.all([
-          fetch("/api/projects", { headers: { Authorization: `Bearer ${token}` }}),
-          fetch("/api/expenses", { headers: { Authorization: `Bearer ${token}` }})
-        ]);
-
-        const projects = await projectsRes.json();
-        const expenses = await expensesRes.json();
-
-        populateTable("projectsTable", projects);
-        populateTable("expensesTable", expenses);
-
-        drawExpenseChart(expenses);
-
-      } catch (err) {
-        console.error(err);
-        alert("Error fetching dashboard data");
+    } catch (err) {
+      console.error(err);
+      alert("Error loading dashboard");
       }
     }
 
+    // ✅ Populate tables
     function populateTable(tableId, data) {
       const tbody = document.getElementById(tableId).querySelector("tbody");
       tbody.innerHTML = "";
@@ -109,7 +111,7 @@
       });
     }
 
-    // ✅ Filter table function
+    // ✅ Search / Filter Tables
     function filterTable(tableId, query) {
       const rows = document.getElementById(tableId).getElementsByTagName("tr");
       query = query.toLowerCase();
@@ -130,6 +132,7 @@
     function drawExpenseChart(expenses) {
       const ctx = document.getElementById("expenseChart").getContext("2d");
       const categoryTotals = {};
+      
       expenses.forEach(e => {
         categoryTotals[e.Category] = (categoryTotals[e.Category] || 0) + parseFloat(e.Amount);
       });
@@ -139,14 +142,14 @@
         data: {
           labels: Object.keys(categoryTotals),
           datasets: [{
-            label: "Expenses by Category",
-            data: Object.values(categoryTotals),
-            backgroundColor: ["#4b2b82", "#6744a3", "#b22222", "#ffa500"]
+          label: "Expenses by Category",
+          data: Object.values(categoryTotals),
           }]
         }
       });
     }
 
+    loadWelcome();
     fetchDashboardData();
   </script>
 </body>
