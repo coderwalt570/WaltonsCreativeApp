@@ -1,16 +1,19 @@
+// ✅ Load dashboard data
 async function loadManagerDashboard() {
   try {
-    // Fetch Projects
-    const projects = await fetch("/api/data/projects", { credentials: "include" })
-      .then(res => res.json());
+    const projectsRes = await fetch("/api/data/projects");
+    const expensesRes = await fetch("/api/data/expenses");
 
-    // Fetch Expenses
-    const expenses = await fetch("/api/data/expenses", { credentials: "include" })
-      .then(res => res.json());
+    if (!projectsRes.ok || !expensesRes.ok) {
+      throw new Error("Failed to fetch data");
+    }
 
-    renderProjectsTable(projects);
-    renderExpensesTable(expenses);
-    renderExpenseChart(expenses);
+    const projects = await projectsRes.json();
+    const expenses = await expensesRes.json();
+
+    renderTable("projectsTable", projects);
+    renderTable("expensesTable", expenses);
+    drawExpenseChart(expenses);
 
   } catch (error) {
     console.error("Dashboard Load Error:", error);
@@ -18,88 +21,63 @@ async function loadManagerDashboard() {
   }
 }
 
-// ✅ Render Projects Table
-function renderProjectsTable(data) {
-  const table = document.getElementById("projectsTable");
+// ✅ Render table data
+function renderTable(tableId, data) {
+  const table = document.getElementById(tableId);
+  table.innerHTML = "";
+
   if (!data.length) {
-    table.innerHTML = "<tr><td>No projects assigned.</td></tr>";
+    table.innerHTML = "<tr><td>No data found</td></tr>";
     return;
   }
 
-  table.innerHTML = `
-    <tr>
-      <th>Project ID</th>
-      <th>Client ID</th>
-      <th>Description</th>
-      <th>Due Date</th>
-      <th>Status</th>
-    </tr>
-    ${data.map(p => `
-      <tr>
-        <td>${p.ProjectID}</td>
-        <td>${p.ClientID}</td>
-        <td>${p.Description}</td>
-        <td>${new Date(p.DueDate).toLocaleDateString()}</td>
-        <td>${p.Status}</td>
-      </tr>
-    `).join("")}
-  `;
+  // Build table headers
+  const headerRow = document.createElement("tr");
+  Object.keys(data[0]).forEach(key => {
+    const th = document.createElement("th");
+    th.innerText = key;
+    headerRow.appendChild(th);
+  });
+  table.appendChild(headerRow);
+
+  // Build table body
+  data.forEach(item => {
+    const row = document.createElement("tr");
+    Object.values(item).forEach(value => {
+      const td = document.createElement("td");
+      td.innerText = value;
+      row.appendChild(td);
+    });
+    table.appendChild(row);
+  });
 }
 
-// ✅ Render Expenses Table
-function renderExpensesTable(data) {
-  const table = document.getElementById("expensesTable");
-  if (!data.length) {
-    table.innerHTML = "<tr><td>No expense records found.</td></tr>";
-    return;
-  }
+// ✅ Draw pie chart for expenses by category
+function drawExpenseChart(expenses) {
+  const ctx = document.getElementById("expenseChart").getContext("2d");
 
-  table.innerHTML = `
-    <tr>
-      <th>Category</th>
-      <th>Amount</th>
-      <th>Date</th>
-    </tr>
-    ${data.map(e => `
-      <tr>
-        <td>${e.Category}</td>
-        <td>$${e.Amount.toFixed(2)}</td>
-        <td>${new Date(e.Date).toLocaleDateString()}</td>
-      </tr>
-    `).join("")}
-  `;
-}
-
-// ✅ Draw Expense Chart
-function renderExpenseChart(expenses) {
-  if (!expenses.length) return;
-
-  const ctx = document.getElementById("expenseChart");
-
-  const categories = [...new Set(expenses.map(e => e.Category))];
-  const totals = categories.map(cat =>
-    expenses.filter(e => e.Category === cat)
-      .reduce((sum, e) => sum + e.Amount, 0)
-  );
+  const categoryTotals = {};
+  expenses.forEach(exp => {
+    categoryTotals[exp.Category] = (categoryTotals[exp.Category] || 0) + parseFloat(exp.Amount);
+  });
 
   new Chart(ctx, {
-    type: "bar",
+    type: "pie",
     data: {
-      labels: categories,
+      labels: Object.keys(categoryTotals),
       datasets: [{
-        label: "Expenses by Category",
-        data: totals
+        data: Object.values(categoryTotals)
       }]
     }
   });
 }
 
-// ✅ Logout
-async function logout() {
-  await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-  window.location.href = "/login.html";
+// ✅ Logout function
+function logout() {
+  sessionStorage.clear();
+  window.location.href = "login.html";
 }
 
-// Initialize
 loadManagerDashboard();
+
 
