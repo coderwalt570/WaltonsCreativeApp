@@ -12,13 +12,12 @@ router.get("/projects", requireAuth, requireRole("Manager"), async (req, res) =>
     const managerID = req.session.user.id;
 
     const result = await executeQuery(
-      `SELECT projectID, clientID, description, date AS DueDate, status
+      `SELECT projectID, clientID, description, [date] AS DueDate, status
       FROM Project
       WHERE managerID = @managerID`,
       [{ name: "managerID", type: sql.Int, value: managerID }]
     );
 
-    // Ensure an array is returned
     const projects = result.recordset || result;
     console.log("Projects fetched:", projects.length);
 
@@ -36,15 +35,14 @@ router.get("/expenses", requireAuth, requireRole("Manager"), async (req, res) =>
 
   try {
     const managerID = req.session.user.id;
-
+    
     const result = await executeQuery(
-      `SELECT expenseID, category, amount, date
+      `SELECT expenseID, category, amount, [date]
       FROM Expense
       WHERE managerID = @managerID`,
       [{ name: "managerID", type: sql.Int, value: managerID }]
     );
-
-    // Ensure an array is returned
+    
     const expenses = result.recordset || result;
     console.log("Expenses fetched:", expenses.length);
 
