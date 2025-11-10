@@ -6,51 +6,46 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>Owner Dashboard</header>
-  <div class="container">
-    <h2>Welcome, Owner</h2>
 
-    <section id="clients">
-      <h3>Clients</h3>
-      <ul id="clientList"></ul>
-    </section>
+<header>
+  <h1>Owner Dashboard</h1>
+  <button class="btn logout" onclick="logout()">Logout</button>
+</header>
 
-    <section id="projects">
-      <h3>Projects</h3>
-      <ul id="projectList"></ul>
-    </section>
+<div class="container">
+  <h2 id="welcome"></h2>
 
-    <section id="invoices">
-      <h3>Invoices</h3>
-      <ul id="invoiceList"></ul>
-    </section>
-  </div>
+  <h3>Projects</h3>
+  <input type="text" id="projectSearch" placeholder="Search Projects..." oninput="filterTable('projectsTable', this.value)">
+  <table id="projectsTable">
+    <thead>
+      <tr>
+        <th>Project ID</th>
+        <th>Client ID</th>
+        <th>Description</th>
+        <th>Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-<script>
-async function loadOwnerData() {
-  try {
-    const res = await fetch('/api/data');
-    const { data } = await res.json();
+  <h3>Invoices</h3>
+  <input type="text" id="invoiceSearch" placeholder="Search Invoices..." oninput="filterTable('invoicesTable', this.value)">
+  <table id="invoicesTable">
+    <thead>
+      <tr>
+        <th>Invoice ID</th>
+        <th>Project ID</th>
+        <th>Amount</th>
+        <th>Date Issued</th>
+        <th>Payment Status</th>
+        </tr>
+      </thead>
+    <tbody></tbody>
+    </table>
+</div>
 
-    // Clients
-    const clientList = document.getElementById('clientList');
-    clientList.innerHTML = data.clients.map(c => `<li>${c.name} - ${c.contactInfo}</li>`).join('');
-
-    // Projects
-    const projectList = document.getElementById('projectList');
-    projectList.innerHTML = data.projects.map(p => `<li>${p.description} (Due: ${p.dueDate})</li>`).join('');
-
-    // Invoices
-    const invoiceList = document.getElementById('invoiceList');
-    invoiceList.innerHTML = data.invoices.map(i => `<li>Invoice #${i.invoiceID} - Amount: $${i.amount} - Status: ${i.paymentStatus}</li>`).join('');
-    
-  } catch (err) {
-    console.error(err);
-    alert("Error loading dashboard data");
-  }
-}
-
-loadOwnerData();
-</script>
+<script src="js/owner.js"></script>
 </body>
 </html>
