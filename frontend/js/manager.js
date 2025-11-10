@@ -1,48 +1,105 @@
-async function logout() {
-  sessionStorage.clear();
-  localStorage.removeItem("token");
-  window.location.href = "login.html";
+async function loadManagerDashboard() {
+  try {
+    // Fetch Projects
+    const projects = await fetch("/api/data/projects", { credentials: "include" })
+      .then(res => res.json());
+
+    // Fetch Expenses
+    const expenses = await fetch("/api/data/expenses", { credentials: "include" })
+      .then(res => res.json());
+
+    renderProjectsTable(projects);
+    renderExpensesTable(expenses);
+    renderExpenseChart(expenses);
+
+  } catch (error) {
+    console.error("Dashboard Load Error:", error);
+    alert("Error loading dashboard data.");
+  }
 }
 
-async function loadDashboard() {
-  const resProjects = await fetch("/api/projects");
-  const resExpenses = await fetch("/api/expenses");
-  const resInvoices = await fetch("/api/invoices");
+// ✅ Render Projects Table
+function renderProjectsTable(data) {
+  const table = document.getElementById("projectsTable");
+  if (!data.length) {
+    table.innerHTML = "<tr><td>No projects assigned.</td></tr>";
+    return;
+  }
 
-  const projects = await resProjects.json();
-  const expenses = await resExpenses.json();
-  const invoices = await resInvoices.json();
-
-  fillTable("projectsTable", projects);
-  fillTable("expensesTable", expenses);
-
-  drawChart(expenses);
-}
-
-function fillTable(id, data) {
-  const table = document.getElementById(id);
-  table.innerHTML = "";
-  if (!data.length) return table.innerHTML = "<tr><td>No data available</td></tr>";
-
-  const headers = Object.keys(data[0]);
   table.innerHTML = `
-    <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
-    <tbody>${data.map(row => `<tr>${headers.map(h => `<td>${row[h]}</td>`).join("")}</tr>`).join("")}</tbody>
+    <tr>
+      <th>Project ID</th>
+      <th>Client ID</th>
+      <th>Description</th>
+      <th>Due Date</th>
+      <th>Status</th>
+    </tr>
+    ${data.map(p => `
+      <tr>
+        <td>${p.ProjectID}</td>
+        <td>${p.ClientID}</td>
+        <td>${p.Description}</td>
+        <td>${new Date(p.DueDate).toLocaleDateString()}</td>
+        <td>${p.Status}</td>
+      </tr>
+    `).join("")}
   `;
 }
 
-function drawChart(expenses) {
-  const categories = {};
-  expenses.forEach(e => categories[e.Category] = (categories[e.Category] || 0) + Number(e.Amount));
+// ✅ Render Expenses Table
+function renderExpensesTable(data) {
+  const table = document.getElementById("expensesTable");
+  if (!data.length) {
+    table.innerHTML = "<tr><td>No expense records found.</td></tr>";
+    return;
+  }
 
-  new Chart(document.getElementById("expenseChart"), {
+  table.innerHTML = `
+    <tr>
+      <th>Category</th>
+      <th>Amount</th>
+      <th>Date</th>
+    </tr>
+    ${data.map(e => `
+      <tr>
+        <td>${e.Category}</td>
+        <td>$${e.Amount.toFixed(2)}</td>
+        <td>${new Date(e.Date).toLocaleDateString()}</td>
+      </tr>
+    `).join("")}
+  `;
+}
+
+// ✅ Draw Expense Chart
+function renderExpenseChart(expenses) {
+  if (!expenses.length) return;
+
+  const ctx = document.getElementById("expenseChart");
+
+  const categories = [...new Set(expenses.map(e => e.Category))];
+  const totals = categories.map(cat =>
+    expenses.filter(e => e.Category === cat)
+      .reduce((sum, e) => sum + e.Amount, 0)
+  );
+
+  new Chart(ctx, {
     type: "bar",
     data: {
-      labels: Object.keys(categories),
-      datasets: [{ data: Object.values(categories) }]
+      labels: categories,
+      datasets: [{
+        label: "Expenses by Category",
+        data: totals
+      }]
     }
   });
 }
 
-loadDashboard();
+// ✅ Logout
+async function logout() {
+  await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+  window.location.href = "/login.html";
+}
+
+// Initialize
+loadManagerDashboard();
 
