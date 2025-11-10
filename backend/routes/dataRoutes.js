@@ -1,11 +1,11 @@
 import express from "express";
 import { executeQuery, sql } from "../utils/db.js";
-import { requireRole } from "../middleware/authMiddleware.js";
+import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // ✅ Manager Projects
-router.get("/projects", requireRole("manager"), async (req, res) => {
+router.get("/projects", requireAuth, requireRole("Manager"), async (req, res) => {
   try {
     const managerID = req.session.user.id;
 
@@ -24,7 +24,7 @@ router.get("/projects", requireRole("manager"), async (req, res) => {
 });
 
 // ✅ Manager Expenses
-router.get("/expenses", requireRole("manager"), async (req, res) => {
+router.get("/expenses", requireAuth, requireRole("Manager"), async (req, res) => {
   try {
     const managerID = req.session.user.id;
 
@@ -43,4 +43,3 @@ router.get("/expenses", requireRole("manager"), async (req, res) => {
 });
 
 export default router;
-
