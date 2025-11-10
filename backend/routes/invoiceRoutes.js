@@ -1,5 +1,5 @@
 import express from "express";
-import { verifyToken } from "../middleware/authMiddleware.js";
+import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 import { createInvoice, getInvoices, approveInvoice } from "../controllers/invoiceController.js";
 
 const router = express.Router();
