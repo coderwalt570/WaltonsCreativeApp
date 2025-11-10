@@ -4,14 +4,18 @@ import { createInvoice, getInvoices, approveInvoice } from "../controllers/invoi
 
 const router = express.Router();
 
-// All routes require authentication
-router.use(verifyToken);
+// All invoice routes require login
+router.use(requireAuth);
 
-// Invoice CRUD
-router.post("/", createInvoice);    // Create invoice (Owner/Manager)
-router.get("/", getInvoices);       // View all invoices
+// Create invoice (Owner or Manager)
+router.post("/", requireRole("Owner", "Manager"), createInvoice);
 
-// Manager Approval
-router.put("/approve", approveInvoice); // Update paymentStatus ('Approved'/'Rejected')
+// View invoices
+// - Owners see all invoices
+// - Managers only see invoices related to their projects
+router.get("/", getInvoices);
+
+// Managers approve invoices (Owner may optionally approve too)
+router.put("/approve", requireRole("Manager", "Owner"), approveInvoice);
 
 export default router;
