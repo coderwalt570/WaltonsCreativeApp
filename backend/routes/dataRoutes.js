@@ -10,9 +10,9 @@ router.get("/projects", requireAuth, requireRole("Manager"), async (req, res) =>
     const managerID = req.session.user.id;
 
     const projects = await executeQuery(
-      `SELECT ProjectID, ClientID, Description, DueDate, Status
-      FROM Project
-      WHERE ManagerID = @managerID`,
+      `SELECT projectID, clientID, description, sedate, status
+       FROM Project
+       WHERE managerID = @managerID`,
       [{ name: "managerID", type: sql.Int, value: managerID }]
     );
 
@@ -29,9 +29,9 @@ router.get("/expenses", requireAuth, requireRole("Manager"), async (req, res) =>
     const managerID = req.session.user.id;
 
     const expenses = await executeQuery(
-      `SELECT ExpenseID, Category, Amount, Date
-      FROM Expense
-      WHERE ManagerID = @managerID`,
+      `SELECT expenseID, category, amount, date
+       FROM Expense
+       WHERE managerID = @managerID`,
       [{ name: "managerID", type: sql.Int, value: managerID }]
     );
 
