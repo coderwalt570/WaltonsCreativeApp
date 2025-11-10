@@ -13,8 +13,8 @@ document.getElementById("welcome").innerText = `Welcome, ${userRole}!`;
 async function fetchDashboardData() {
   try {
     const [projectsRes, expensesRes] = await Promise.all([
-      fetch("/api/data/projects"),
-      fetch("/api/data/expenses")
+      fetch("/api/data/projects", { credentials: "same-origin" }),
+      fetch("/api/data/expenses", { credentials: "same-origin" })
     ]);
 
     if (!projectsRes.ok || !expensesRes.ok) throw new Error("Error loading dashboard data");
@@ -36,6 +36,7 @@ async function fetchDashboardData() {
 function populateTable(tableId, data) {
   const tbody = document.getElementById(tableId).querySelector("tbody");
   tbody.innerHTML = "";
+
   data.forEach(row => {
     const tr = document.createElement("tr");
     Object.values(row).forEach(val => {
@@ -51,9 +52,11 @@ function populateTable(tableId, data) {
 function filterTable(tableId, query) {
   const rows = document.getElementById(tableId).getElementsByTagName("tr");
   query = query.toLowerCase();
+
   for (let i = 1; i < rows.length; i++) {
     const cells = rows[i].getElementsByTagName("td");
     let match = false;
+
     for (let j = 0; j < cells.length; j++) {
       if (cells[j].innerText.toLowerCase().includes(query)) {
         match = true;
