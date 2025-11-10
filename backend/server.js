@@ -30,6 +30,11 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/data", dataRoutes);
 
+app.get("/session-user", (req, res) => {
+  if (!req.session.user) return res.status(401).json({ message: "Not logged in" });
+  res.json(req.session.user);
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
