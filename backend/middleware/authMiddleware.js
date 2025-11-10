@@ -1,23 +1,28 @@
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-dotenv.config();
 
-export const verifyToken = (req, res, next) => {
+// ✅ Check if user is logged in
+export function requireAuth(req, res, next) {
   const token = req.cookies.token;
-  if (!token) return res.status(401).json({ message: "Unauthorized" });
+  if (!token) return res.status(401).json({ message: "Not authorized" });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    const user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = user;
     next();
-  } catch (err) {
-    res.status(403).json({ message: "Invalid or expired token" });
+  } catch {
+    return res.status(401).json({ message: "Invalid token" });
   }
-};
+}
 
-export const checkRole = (roles) => (req, res, next) => {
-  if (!roles.includes(req.user.role)) {
-    return res.status(403).json({ message: "Access denied" });
-  }
-  next();
-};
+// ✅ Check if user has a required role
+export function requireRole(role) {
+  return function (req, res, next) {
+    if (!req.user) return res.status(401).json({ message: "Not authorized" });
+
+    if (req.user.role !== role) {
+      return res.status(403).json({ message: "Forbidden - Insufficient permissions" });
+    }
+
+    next();
+  };
+}
