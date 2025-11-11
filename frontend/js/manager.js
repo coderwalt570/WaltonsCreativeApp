@@ -12,24 +12,17 @@ document.getElementById("welcome").innerText = `Welcome, ${userRole}!`;
 // ✅ Fetch dashboard data
 async function fetchDashboardData() {
   try {
-    const [projectsRes, expensesRes] = await Promise.all([
-      fetch("/api/data/projects"),
-      fetch("/api/data/expenses")
-    ]);
-
-    if (!projectsRes.ok || !expensesRes.ok) {
-      console.error("Failed to fetch data:", projectsRes, expensesRes);
+    const projectsRes = await fetch("/data/projects");
+    
+    if (!projectsRes.ok) {
+      console.error("Failed to fetch projects:", projectsRes);
       return alert("Error loading dashboard data.");
     }
-    
-    const projects = await projectsRes.json();
-    const expenses = await expensesRes.json();
-    
-    // Ensure arrays
-    populateTable("projectsTable", Array.isArray(projects) ? projects : []);
-    populateTable("expensesTable", Array.isArray(expenses) ? expenses : []);
 
-    drawExpenseChart(expenses);
+    const projects = await projectsRes.json();
+    
+    // Ensure array
+    populateTable("projectsTable", Array.isArray(projects) ? projects : []);
 
   } catch (err) {
     console.error("Dashboard fetch error:", err);
@@ -81,31 +74,6 @@ function filterTable(tableId, query) {
   }
 }
 
-// ✅ Draw expense chart
-function drawExpenseChart(expenses) {
-  const ctx = document.getElementById("expenseChart").getContext("2d");
-  const categoryTotals = {};
-
-  if (Array.isArray(expenses)) {
-    expenses.forEach(e => {
-      categoryTotals[e.category] = (categoryTotals[e.category] || 0) + parseFloat(e.amount || 0);
-    });
-  }
-
-  new Chart(ctx, {
-    type: "pie",
-    data: {
-      labels: Object.keys(categoryTotals),
-      datasets: [{
-        label: "Expenses by Category",
-        data: Object.values(categoryTotals),
-        backgroundColor: ["#4b2b82", "#6744a3", "#b22222", "#ffa500", "#00aaff"]
-      }]
-    }
-  });
-}
-
 // ✅ Initial load
 fetchDashboardData();
-
 
