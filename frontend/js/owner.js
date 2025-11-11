@@ -11,17 +11,24 @@ document.getElementById("welcome").innerText = `Welcome, Owner`;
 // Fetch dashboard data
 async function fetchOwnerData() {
   try {
-    const res = await fetch("/api/data");
-    if (!res.ok) throw new Error("Error loading data");
+    // ✅ Fetch all projects
+    const projectsRes = await fetch("/api/data/projects");
+    // ✅ Fetch all invoices
+    const invoicesRes = await fetch("/api/invoices");
     
-    const { data } = await res.json();
+    if (!projectsRes.ok || !invoicesRes.ok) {
+    throw new Error("Server returned an error");
+    }
     
-    populateTable("projectsTable", data.projects || []);
-    populateTable("invoicesTable", data.invoices || []);
+    const projects = await projectsRes.json();
+    const invoices = await invoicesRes.json();
     
+    populateTable("projectsTable", Array.isArray(projects) ? projects : []);
+    populateTable("invoicesTable", Array.isArray(invoices) ? invoices : []);
+
   } catch (err) {
-    console.error(err);
-    alert("Error loading dashboard data.");
+  console.error("Owner dashboard load error:", err);
+  alert("Error loading dashboard data.");
   }
 }
 
