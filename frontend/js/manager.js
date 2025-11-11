@@ -9,19 +9,17 @@ function logout() {
 const userRole = sessionStorage.getItem("role") || "Manager";
 document.getElementById("welcome").innerText = `Welcome, ${userRole}!`;
 
-// ✅ Fetch dashboard data
+// ✅ Fetch only Projects
 async function fetchDashboardData() {
   try {
-    const projectsRes = await fetch("/data/projects");
-    
+    const projectsRes = await fetch("/api/data/projects");
+
     if (!projectsRes.ok) {
       console.error("Failed to fetch projects:", projectsRes);
-      return alert("Error loading dashboard data.");
+      return alert("Error loading projects.");
     }
 
     const projects = await projectsRes.json();
-    
-    // Ensure array
     populateTable("projectsTable", Array.isArray(projects) ? projects : []);
 
   } catch (err) {
@@ -35,7 +33,7 @@ function populateTable(tableId, data) {
   const tbody = document.getElementById(tableId).querySelector("tbody");
   tbody.innerHTML = "";
 
-  if (!data || !Array.isArray(data) || data.length === 0) {
+  if (!data || data.length === 0) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
     td.colSpan = document.getElementById(tableId).querySelectorAll("th").length;
@@ -57,7 +55,7 @@ function populateTable(tableId, data) {
   });
 }
 
-// ✅ Filter table
+// ✅ Table Filter
 function filterTable(tableId, query) {
   const rows = document.getElementById(tableId).getElementsByTagName("tr");
   query = query.toLowerCase();
@@ -74,6 +72,6 @@ function filterTable(tableId, query) {
   }
 }
 
-// ✅ Initial load
+// ✅ Initial Load
 fetchDashboardData();
 
