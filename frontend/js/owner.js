@@ -1,42 +1,39 @@
-// Logout
+// ✅ Logout
 function logout() {
   sessionStorage.clear();
   localStorage.removeItem("token");
   window.location.href = "login.html";
 }
 
-// Welcome message
+// ✅ Welcome message
 document.getElementById("welcome").innerText = `Welcome, Owner`;
 
-// Fetch dashboard data
+// ✅ Fetch both Projects and Invoices from /api/data
 async function fetchOwnerData() {
   try {
-    // ✅ Fetch all projects
-    const projectsRes = await fetch("/api/data/projects");
-    // ✅ Fetch all invoices
-    const invoicesRes = await fetch("/api/invoices");
-    
-    if (!projectsRes.ok || !invoicesRes.ok) {
-    throw new Error("Server returned an error");
-    }
-    
-    const projects = await projectsRes.json();
-    const invoices = await invoicesRes.json();
-    
-    populateTable("projectsTable", Array.isArray(projects) ? projects : []);
-    populateTable("invoicesTable", Array.isArray(invoices) ? invoices : []);
+    const res = await fetch("/api/data");
 
+    if (!res.ok) {
+      console.error("Server returned:", res.status, res.statusText);
+      throw new Error("Failed to load owner dashboard data.");
+    }
+
+    const { data } = await res.json();
+
+    populateTable("projectsTable", Array.isArray(data.projects) ? data.projects : []);
+    populateTable("invoicesTable", Array.isArray(data.invoices) ? data.invoices : []);
+    
   } catch (err) {
-  console.error("Owner dashboard load error:", err);
-  alert("Error loading dashboard data.");
+    console.error("Owner dashboard load error:", err);
+    alert("Error loading dashboard data.");
   }
 }
 
-// Populate table
+// ✅ Populate table dynamically
 function populateTable(tableId, data) {
   const tbody = document.getElementById(tableId).querySelector("tbody");
   tbody.innerHTML = "";
-
+  
   if (!data || data.length === 0) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
@@ -59,7 +56,7 @@ function populateTable(tableId, data) {
   });
 }
 
-// Filter
+// ✅ Table Filter
 function filterTable(tableId, query) {
   const rows = document.getElementById(tableId).getElementsByTagName("tr");
   query = query.toLowerCase();
@@ -76,5 +73,6 @@ function filterTable(tableId, query) {
   }
 }
 
-// Initial load
+// ✅ Initial load
 fetchOwnerData();
+
