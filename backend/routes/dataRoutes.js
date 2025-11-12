@@ -1,14 +1,17 @@
 import express from "express";
-import { executeQuery, sql } from "../utils/db.js";
-import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
+import { executeQuery } from "../utils/db.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-/* ---------------------- MANAGER PROJECTS ---------------------- */
-router.get("/projects", requireAuth, requireRole("Manager"), async (req, res) => {
+/* ---------------------- PROJECTS (Owner + Manager) ---------------------- */
+router.get("/projects", requireAuth, async (req, res) => {
   console.log("Session user (projects):", req.session.user);
 
   try {
+    const { role } = req.session.user;
+
+    // Both roles can see projects (you can add filters later if needed)
     const result = await executeQuery(`
       SELECT projectID, clientID, description, dueDate, status
       FROM Project
@@ -22,11 +25,18 @@ router.get("/projects", requireAuth, requireRole("Manager"), async (req, res) =>
   }
 });
 
-/* ---------------------- OWNER DASHBOARD ---------------------- */
-router.get("/", requireAuth, requireRole("Owner"), async (req, res) => {
-  console.log("Session user (owner):", req.session.user);
+/* ---------------------- OWNER DASHBOARD (Projects + Invoices) ---------------------- */
+router.get("/", requireAuth, async (req, res) => {
+  console.log("Session user (owner route):", req.session.user);
 
   try {
+    const { role } = req.session.user;
+
+    // Only Owners should access this route
+    if (role.toLowerCase() !== "owner") {
+      return res.status(403).json({ message: "Access denied: Owners only" });
+    }
+
     // Fetch Projects
     const projectsResult = await executeQuery(`
       SELECT projectID, clientID, description, dueDate, status
@@ -52,3 +62,4 @@ router.get("/", requireAuth, requireRole("Owner"), async (req, res) => {
 });
 
 export default router;
+
