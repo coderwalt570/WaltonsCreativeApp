@@ -17,7 +17,7 @@ router.get("/projects", requireAuth, async (req, res) => {
       FROM Project
     `);
 
-    const projects = result.recordset || [];
+    const projects = result || [];
     res.json(projects);
   } catch (err) {
     console.error("Projects Error:", err);
@@ -51,7 +51,7 @@ router.get("/", requireAuth, async (req, res) => {
 
     const data = {
       projects: projectsResult.recordset || [],
-      invoices: invoicesResult.recordset || []
+      invoices: invoicesResult || []
     };
 
     res.json({ data });
