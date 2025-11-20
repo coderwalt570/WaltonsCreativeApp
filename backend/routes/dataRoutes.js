@@ -61,5 +61,15 @@ router.get("/", requireAuth, async (req, res) => {
   }
 });
 
+router.get("/db-check", async (req, res) => {
+  try {
+    const result = await executeQuery("SELECT DB_NAME() AS CurrentDatabase");
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "DB check failed" });
+  }
+});
+
 export default router;
 
