@@ -21,27 +21,9 @@
     </section>
   </div>
 
-<script>
-async function loadAccountantData() {
-  try {
-    const res = await fetch('/api/data');
-    const { data } = await res.json();
+  <!-- ✅ NEW SCRIPT FILE GOES HERE, BEFORE </body> -->
+  <script src="accountant.js"></script>
 
-    // Invoices
-    const invoiceList = document.getElementById('invoiceList');
-    invoiceList.innerHTML = data.invoices.map(i => `<li>Invoice #${i.invoiceID} - Amount: $${i.amount} - Status: ${i.paymentStatus}</li>`).join('');
-
-    // Payments
-    const paymentList = document.getElementById('paymentList');
-    paymentList.innerHTML = data.payments.map(p => `<li>Payment #${p.paymentID} - Method: ${p.method} - Amount: $${p.totalAmount} - Date: ${p.transactionDate}</li>`).join('');
-
-  } catch (err) {
-    console.error(err);
-    alert("Error loading dashboard data");
-  }
-}
-
-loadAccountantData();
-</script>
 </body>
 </html>
+
