@@ -50,7 +50,7 @@ router.get("/", requireAuth, async (req, res) => {
     `);
 
     const data = {
-      projects: projectsResult.recordset || [],
+      projects: projectsResult || [],
       invoices: invoicesResult || []
     };
 
