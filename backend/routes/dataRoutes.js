@@ -61,6 +61,44 @@ router.get("/", requireAuth, async (req, res) => {
   }
 });
 
+// =============================
+// Accountant Dashboard Route
+// =============================
+router.get("/accountant", requireAuth, async (req, res) => {
+  console.log("Session user (accountant route):", req.session.user);
+
+  try {
+    const { role } = req.session.user;
+
+    if (role.toLowerCase() !== "accountant") {
+      return res.status(403).json({ message: "Access denied: Accountants only" });
+    }
+
+    // Fetch invoices
+    const invoices = await executeQuery(`
+      SELECT invoiceID, projectID, amount, dateIssued, paymentStatus
+      FROM Invoice
+    `);
+
+    // Fetch payments
+    const payments = await executeQuery(`
+      SELECT paymentID, invoiceID, method, totalAmount, transactionDate
+      FROM Payments
+    `);
+
+    res.json({
+      data: {
+        invoices: invoices || [],
+        payments: payments || []
+      }
+    });
+
+  } catch (err) {
+    console.error("Accountant Dashboard Error:", err);
+    res.status(500).json({ message: "Server error loading accountant dashboard" });
+  }
+});
+
 router.get("/db-check", async (req, res) => {
   try {
     const result = await executeQuery("SELECT DB_NAME() AS CurrentDatabase");
