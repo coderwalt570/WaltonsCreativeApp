@@ -28,6 +28,20 @@ async function fetchDashboardData() {
   }
 }
 
+async function addExpense() {
+  const description = document.getElementById("expDesc").value;
+  const amount = document.getElementById("expAmount").value;
+
+  const res = await fetch("/api/data/expenses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ description, amount })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+}
+
 // ✅ Populate table dynamically
 function populateTable(tableId, data) {
   const tbody = document.getElementById(tableId).querySelector("tbody");
