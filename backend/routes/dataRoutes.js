@@ -83,7 +83,7 @@ router.get("/accountant", requireAuth, async (req, res) => {
     // Fetch payments
     const payments = await executeQuery(`
       SELECT paymentID, invoiceID, method, totalAmount, transactionDate
-      FROM Payments
+      FROM Payment
     `);
 
     res.json({
