@@ -109,5 +109,34 @@ router.get("/db-check", async (req, res) => {
   }
 });
 
+// =============================
+// Add New Expense (Manager only)
+// =============================
+router.post("/expenses", requireAuth, async (req, res) => {
+  const { role, id } = req.session.user;
+
+  if (role.toLowerCase() !== "manager") {
+    return res.status(403).json({ message: "Access denied: Managers only" });
+  }
+
+  const { description, amount } = req.body;
+
+  try {
+    await executeQuery(`
+      INSERT INTO Expense (managerID, description, amount, dateRecorded)
+      VALUES (@id, @description, @amount, GETDATE())
+    `, [
+      { name: "id", type: sql.Int, value: id },
+      { name: "description", type: sql.VarChar, value: description },
+      { name: "amount", type: sql.Decimal, value: amount }
+    ]);
+
+    res.json({ success: true, message: "Expense added successfully" });
+  } catch (err) {
+    console.error("Expense Insert Error:", err);
+    res.status(500).json({ message: "Server error adding expense" });
+  }
+});
+
 export default router;
 
