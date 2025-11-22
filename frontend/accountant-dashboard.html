@@ -6,23 +6,51 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>Accountant Dashboard</header>
-  <div class="container">
-    <h2>Welcome, Accountant</h2>
 
-    <section id="invoices">
-      <h3>Invoices</h3>
-      <ul id="invoiceList"></ul>
-    </section>
+<header>
+  <h1>Accountant Dashboard</h1>
+  <button class="btn logout" onclick="logout()">Logout</button>
+</header>
 
-    <section id="payments">
-      <h3>Payments</h3>
-      <ul id="paymentList"></ul>
-    </section>
-  </div>
+<div class="container">
 
-  <!-- ✅ NEW SCRIPT FILE GOES HERE, BEFORE </body> -->
-  <script src="accountant.js"></script>
+  <h2 id="welcome"></h2>
+
+  <!-- Invoices Section -->
+  <h3>Invoices</h3>
+  <input type="text" placeholder="Search invoices..." oninput="filterTable('invoicesTable', this.value)">
+  <table id="invoicesTable">
+    <thead>
+      <tr>
+        <th>Invoice ID</th>
+        <th>Project ID</th>
+        <th>Amount</th>
+        <th>Date Issued</th>
+        <th>Payment Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Payments Section -->
+  <h3 style="margin-top:40px;">Payments</h3>
+  <input type="text" placeholder="Search payments..." oninput="filterTable('paymentsTable', this.value)">
+  <table id="paymentsTable">
+    <thead>
+      <tr>
+        <th>Payment ID</th>
+        <th>Invoice ID</th>
+        <th>Method</th>
+        <th>Total Amount</th>
+        <th>Transaction Date</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+</div>
+
+<script src="js/accountant.js"></script>
 
 </body>
 </html>
