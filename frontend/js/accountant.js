@@ -1,46 +1,80 @@
-async function loadAccountantData() {
+// ✅ Logout
+function logout() {
+  sessionStorage.clear();
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+}
+
+// ✅ Welcome message
+document.getElementById("welcome").innerText = `Welcome, Accountant`;
+
+// ✅ Fetch accountant data (invoices + payments)
+async function fetchAccountantData() {
   try {
-    const res = await fetch('/api/data/accountant');
+    const res = await fetch("/api/data/accountant");
+
+    if (!res.ok) {
+      console.error("Server returned:", res.status, res.statusText);
+      throw new Error("Failed to load accountant dashboard data.");
+    }
+
     const { data } = await res.json();
 
-    console.log("Accountant Data Loaded:", data);
-
-    // INVOICES
-    const invoiceList = document.getElementById('invoiceList');
-    invoiceList.innerHTML = data.invoices.length
-      ? data.invoices
-          .map(i => `
-            <li>
-              <strong>Invoice #${i.invoiceID}</strong><br>
-              Project: ${i.projectID}<br>
-              Amount: $${i.amount}<br>
-              Status: ${i.paymentStatus}<br>
-              Issued: ${new Date(i.dateIssued).toLocaleDateString()}
-            </li>
-          `)
-          .join('')
-      : "<li>No invoices available.</li>";
-
-    // PAYMENTS
-    const paymentList = document.getElementById('paymentList');
-    paymentList.innerHTML = data.payments.length
-      ? data.payments
-          .map(p => `
-            <li>
-              <strong>Payment #${p.paymentID}</strong><br>
-              Invoice: ${p.invoiceID}<br>
-              Method: ${p.method}<br>
-              Amount: $${p.totalAmount}<br>
-              Date: ${new Date(p.transactionDate).toLocaleDateString()}
-            </li>
-          `)
-          .join('')
-      : "<li>No payments available.</li>";
+    populateTable("invoicesTable", Array.isArray(data.invoices) ? data.invoices : []);
+    populateTable("paymentsTable", Array.isArray(data.payments) ? data.payments : []);
 
   } catch (err) {
-    console.error("Dashboard Load Error:", err);
-    alert("Error loading accountant dashboard");
+    console.error("Accountant dashboard load error:", err);
+    alert("Error loading dashboard data.");
   }
 }
+
+// ✅ Populate table dynamically
+function populateTable(tableId, data) {
+  const tbody = document.getElementById(tableId).querySelector("tbody");
+  tbody.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = document.getElementById(tableId).querySelectorAll("th").length;
+    td.style.textAlign = "center";
+    td.innerText = "No data available";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  data.forEach(row => {
+    const tr = document.createElement("tr");
+    Object.values(row).forEach(val => {
+      const td = document.createElement("td");
+      td.innerText = val ?? "";
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// ✅ Table Filter
+function filterTable(tableId, query) {
+  const rows = document.getElementById(tableId).getElementsByTagName("tr");
+  query = query.toLowerCase();
+  for (let i = 1; i < rows.length; i++) {
+    const cells = rows[i].getElementsByTagName("td");
+    let match = false;
+    for (let j = 0; j < cells.length; j++) {
+      if (cells[j].innerText.toLowerCase().includes(query)) {
+        match = true;
+        break;
+      }
+    }
+    rows[i].style.display = match ? "" : "none";
+  }
+}
+
+// ✅ Initial load
+fetchAccountantData();
+
 
 loadAccountantData();
