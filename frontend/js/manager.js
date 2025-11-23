@@ -9,13 +9,12 @@ function logout() {
 const userRole = sessionStorage.getItem("role") || "Manager";
 document.getElementById("welcome").innerText = `Welcome, ${userRole}!`;
 
-// ✅ Fetch only Projects
+/* ---------------------- FETCH PROJECTS ---------------------- */
 async function fetchDashboardData() {
   try {
     const projectsRes = await fetch("/api/data/projects");
 
     if (!projectsRes.ok) {
-      console.error("Failed to fetch projects:", projectsRes);
       return alert("Error loading projects.");
     }
 
@@ -28,6 +27,20 @@ async function fetchDashboardData() {
   }
 }
 
+/* ---------------------- FETCH EXPENSES ---------------------- */
+async function loadExpenses() {
+  try {
+    const res = await fetch("/api/data/expenses");
+    const expenses = await res.json();
+
+    populateTable("expensesTable", Array.isArray(expenses) ? expenses : []);
+  } catch (err) {
+    console.error("Expense load error:", err);
+    alert("Error loading expenses.");
+  }
+}
+
+/* ---------------------- ADD EXPENSE ---------------------- */
 async function addExpense() {
   const description = document.getElementById("expDesc").value;
   const amount = document.getElementById("expAmount").value;
@@ -40,9 +53,11 @@ async function addExpense() {
 
   const data = await res.json();
   alert(data.message);
+
+  loadExpenses(); // refresh table
 }
 
-// ✅ Populate table dynamically
+/* ---------------------- POPULATE TABLE ---------------------- */
 function populateTable(tableId, data) {
   const tbody = document.getElementById(tableId).querySelector("tbody");
   tbody.innerHTML = "";
@@ -69,7 +84,7 @@ function populateTable(tableId, data) {
   });
 }
 
-// ✅ Table Filter
+/* ---------------------- SEARCH FILTER ---------------------- */
 function filterTable(tableId, query) {
   const rows = document.getElementById(tableId).getElementsByTagName("tr");
   query = query.toLowerCase();
@@ -86,6 +101,8 @@ function filterTable(tableId, query) {
   }
 }
 
-// ✅ Initial Load
+/* ---------------------- INITIAL LOAD ---------------------- */
 fetchDashboardData();
+loadExpenses();
+
 
